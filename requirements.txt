@@ -1,0 +1,59 @@
+# Packages related to Celery and asynchronous messaging
+amqp==5.2.0                # Messaging protocol used by Celery (e.g., RabbitMQ)
+billiard==4.2.1            # Multiprocessing library used by Celery
+celery==5.4.0              # Distributed task framework (background jobs)
+django-celery-beat==2.7.0  # Periodic task scheduling with Celery in Django
+django-celery-results==2.5.1  # Storing Celery task results in Django's database
+kombu==5.4.2               # Messaging library used by Celery (communication with brokers)
+vine==5.1.0                # Kombu dependency for handling asynchronous promises
+
+# Packages for Django and its ecosystem
+Django==5.1.2              # Django web framework
+django-timezone-field==7.0  # Support for timezone fields in Django models
+
+# Packages for time and date management
+cron-descriptor==1.4.5     # Human-readable descriptions for cron jobs
+python-crontab==3.2.0      # Cron job management with Python
+python-dateutil==2.9.0.post0  # Advanced date and time handling
+tzdata==2024.2             # Timezone database
+
+# Packages related to Redis (broker for Celery)
+redis==5.1.1               # Redis client
+
+# Compatibility and typing packages
+six==1.16.0                # Python 2 and 3 compatibility
+typing_extensions==4.12.2  # Type hints for older Python versions
+
+# Packages related to Click (command-line interface)
+click==8.1.7               # Framework for building command-line interfaces
+click-didyoumean==0.3.1    # Suggestions for unrecognized commands
+click-plugins==1.1.1       # Plugin system for Click
+click-repl==0.3.0          # REPL (Read-Eval-Print Loop) mode for Click
+
+# Other useful packages
+async-timeout==4.0.3       # Timeout handling for asynchronous operations
+asgiref==3.8.1             # ASGI implementation used by Django (asynchronous interface)
+prompt_toolkit==3.0.48     # Tools for building interactive CLI applications
+sqlparse==0.5.1            # SQL parser used by Django
+wcwidth==0.2.13            # Measuring character width in terminals
+
+# Linting, formatting, and code quality tools
+astroid==3.3.5             # Static analysis tool used by Pylint
+black==24.10.0             # Code formatter for Python
+dill==0.3.9                # Serialization library for complex Python objects
+flake8==7.1.1              # Tool for enforcing Python style guide (PEP 8)
+isort==5.13.2              # Python utility to sort imports
+mccabe==0.7.0              # Complexity checker used by Flake8
+mypy-extensions==1.0.0     # Extensions for static type checking (Mypy)
+packaging==24.1            # Utilities for Python package management
+pathspec==0.12.1           # Pattern matching for file paths (used by Black)
+platformdirs==4.3.6        # Managingpsycopg2 platform-specific directories
+pycodestyle==2.12.1        # Python style guide checker used by Flake8
+pyflakes==3.2.0            # Linter that checks Python code for errors
+pylint==3.3.1              # Code analysis tool for detecting bugs and enforcing coding standards
+tomlkit==0.13.2            # Library for parsing and manipulating TOML files (used by Black)
+dj-database-url==0.5.00
+python-decouple==3.8
+django-celery-results==2.5.1  #To store results of Celery tasks
+psycopg2-binary==2.9.0
+python-dotenv==1.0.1

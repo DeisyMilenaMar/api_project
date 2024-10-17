@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+# Ejecutar el entrypoint para preparar la aplicación (migraciones, estáticos, etc.)
+sh ./scripts/entrypoint.sh
+
+export DJANGO_SETTINGS_MODULE=app.config.settings.local
+
+# Comprobar el entorno (desarrollo o producción)
+if [ "$DJANGO_ENV" = "production" ]; then
+    # Iniciar Gunicorn en producción
+    exec gunicorn app.wsgi:application --bind 0.0.0.0:8000
+else
+    # Usar runserver en desarrollo
+    exec python manage.py runserver 0.0.0.0:8000
+fi

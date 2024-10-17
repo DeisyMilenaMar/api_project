@@ -10,20 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def getenvvar(name, default_value=None):
+
+    """Get environment variable or raise an error if not defined."""
+    value = os.environ.get(name, default_value)
+    if value is None:
+        raise ImproperlyConfigured(f'Environment variable {name} is undefined')
+    return value
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-7!0=o0_5iix6-+2$5+09184)po=-jp^71gmaym70q)yqlfw)1h"
+SECRET_KEY = getenvvar('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -37,6 +46,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_results",
+
+    "binance_trader",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -49,7 +62,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "app.urls"
+ROOT_URLCONF = "app.config.urls"
 
 TEMPLATES = [
     {
@@ -67,19 +80,35 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "app.wsgi.application"
+STATIC_ROOT = "app.static"
+
+WSGI_APPLICATION = "app.config.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'postgres'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
+# If you have multiple apps with separate databases, add them like this:
+if 'BINANCE_TRADER_DB_NAME' in os.environ:
+    DATABASES['binance_trader'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenvvar('BINANCE_TRADER_DB_NAME'),
+        'USER': getenvvar('BINANCE_TRADER_DB_USER'),
+        'PASSWORD': getenvvar('BINANCE_TRADER_DB_PASSWORD'),
+        'HOST': getenvvar('BINANCE_TRADER_DB_HOST'),
+        'PORT': getenvvar('BINANCE_TRADER_DB_PORT'),
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -121,3 +150,46 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ------------------------
+# Celery Configuration
+# ------------------------
+# Broker URL (Redis) for Celery, you can adjust it with environment variables
+CELERY_BROKER_URL = getenvvar('CELERY_BROKER_URL', 'redis://redis:6379/0')
+
+# Result backend for Celery
+CELERY_RESULT_BACKEND = getenvvar('CELERY_RESULT_BACKEND', 'django-db')
+
+# Accepted content types for Celery (JSON)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Time zone configuration for Celery tasks
+CELERY_TIMEZONE = TIME_ZONE  # Ensure that TIME_ZONE is defined in your settings.py
+CELERY_ENABLE_UTC = True
+
+# Maximum number of attempts to reconnect to the broker (Redis)
+CELERY_BROKER_CONNECTION_MAX_RETRIES = int(getenvvar('CELERY_BROKER_CONNECTION_MAX_RETRIES', 5))
+
+# Retry broker connection on startup
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Timeout when trying to connect to the broker (in seconds)
+CELERY_BROKER_CONNECTION_TIMEOUT = int(getenvvar('CELERY_BROKER_CONNECTION_TIMEOUT', 10))
+
+# Enable Celery Eager in development (so tasks run without a worker)
+CELERY_TASK_ALWAYS_EAGER = getenvvar('CELERY_TASK_ALWAYS_EAGER', 'False').lower() in ['true', '1', 't']
+
+# Extend results (includes more data from tasks)
+CELERY_RESULT_EXTENDED = True
+
+# Configuration for Celery Beat to use the database scheduler
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+
+# Optional: Configure a timeout for hanging tasks (depends on your specific usage)
+CELERY_TASK_TIME_LIMIT = int(getenvvar('CELERY_TASK_TIME_LIMIT', 300))  # Time limit in seconds
+
+# Search paths for automatic task discovery in Django apps
+CELERY_IMPORTS = ('binance_trader.tasks',)
+
